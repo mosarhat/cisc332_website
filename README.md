@@ -2,7 +2,7 @@
 
 Heya, my name is Mohammed Sarhat, and this is my Database implementation with some CSS, HTML, and PHP.
 
-Just a quick precursor, for this project, I'm utilizing an MVC architecture.
+Just a quick precursor, for this project, I'm utilizing a MVC architecture.
 
 Throughout Queen's, this isn't really taught, and the for the sake of clarity, I thought it would be important to explain how this architecture works.
 
