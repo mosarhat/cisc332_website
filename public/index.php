@@ -1,19 +1,3 @@
-<?php
-require_once '../app/core/Router.php';
-require_once '../app/core/connectdb.php';
-require_once '../app/controllers/SessionController.php';
-require_once '../app/models/SessionModel.php';
-
-// Create router with database connection
-$router = new Router($connection);
-
-// Define routes with correct path
-$router->add('/cisc332_website/schedule', 'SessionController', 'index');
-
-// Get the current URL path
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,9 +7,14 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     <link rel="stylesheet" href="styles/style.css">
 </head>
 <body>
-    <?php 
-    include 'components/navbar.php';
-    $router->dispatch($path);
-    ?>
-</body>
+    <?php include '../app/components/navbar.php'; ?>
+    <img 
+        src="https://i.imgur.com/OkPCwwkg.jpg" 
+        width="30%" 
+        style="border: 3px solid white; border-radius: 15px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); margin-top: 2rem;" 
+    />
+    <p>The Infamous Conference Hall (yes, it's Jeffery Hall!)</p>
 </html>
+
+
+

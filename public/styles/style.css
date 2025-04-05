@@ -1,16 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap');
+
 :root {
-  font-family: 'Courier New', Courier, monospace;
+  --main-font: "VT323", monospace;
+  font-family: var(--main-font);
   line-height: 1.6;
   font-weight: 400;
 }
 
 body {
   margin: 0;
-  min-height: 100vh;
-  padding-top: 180px;
+  min-height: 110vh;
   background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-  background-size: 400%;
-  animation: gradientFlow 15s ease infinite;
+  background-size: 500%;
   color: #ffffff;
   display: flex;
   flex-direction: column;
@@ -18,13 +19,10 @@ body {
 }
 
 .navbar {
-  position: fixed;
-  top: 0;
   width: 100%;
   background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   padding: 1rem 0;
-  z-index: 1000;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -33,12 +31,19 @@ body {
 .title {
   display: inline-block;
   font-size: 1.6rem;
+  font-weight: bolder;
   border-bottom: 1px solid #ffffff;
   cursor: pointer;
 }
 
 .title:hover {
   transform: scale(1.2);
+}
+
+.sub-title {
+  display: inline-block;
+  font-size: 1.3rem;
+  font-weight: 600;
 }
 
 .button-container {
@@ -59,8 +64,195 @@ body {
 }
 
 .button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
+  animation-play-state: paused;
+  opacity: 0.9; 
+  transform: scale(1.05);
+}
+
+.button.toggled {
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+  color: white;
+  border: 2px solid white;
+  background-size: 400%;
+}
+
+.subheading {
+  font-size: 1.2rem;
+  color: #ffffff;
+  text-align: center;
+  border-bottom: 1px solid #ffffff;
+  margin-bottom: 1rem;
+}
+
+.items {
+  font-family: var(--main-font);
+  font-size: 1rem;
+}
+
+.items:hover {
+  animation-play-state: paused;
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.items.toggled, .items:active {
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); 
+  color: white;
+  border: 2px solid white;
+  animation: gradientFlow 15s ease infinite;
+  background-size: 400%;
+  transition: all 0.3s ease;
+}
+
+.items:not(.toggled) {
+  background: white;
+  color: black;
+  border: 2px solid black;
+}
+
+.gradient-select {
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+  background-size: 400%;
+  border: 1px solid #ccc;
+  color: black;
+  font-size: 1rem;
+  padding: 0.5rem;
+  border-radius: 5px;
+  outline: none;
+}
+
+.edit-link {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.edit-link:hover {
+  color: #b21f1f; 
+  transform: scale(1.1);
+}
+
+.edit-link.toggled {
+  color: #b21f1f;
+  font-weight: bolder;
+  text-decoration: underline;
+}
+
+.highlighted-row {
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+.edit-active {
+  color: #fdbb2d;
+  font-weight: bolder;
+  text-decoration: underline;
+}
+
+.edit-session-container {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+.edit-session-form {
+  font-family: var(--main-font);
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: white; 
+}
+
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-family: var(--main-font);
+  font-size: 1rem;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: white;
+}
+
+.form-group input {
+  font-family: var(--main-font);
+  font-size: 1rem;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  color: black;
+}
+
+.form-actions {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.form-actions button {
+  font-family: var(--main-font);
+  font-size: 1rem;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid white;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.form-actions button:hover {
+  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+  background-size: 400%;
+  animation: gradientFlow 15s ease infinite;
+}
+
+.financials-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  max-width: 1120px; 
+  margin: 0 auto;
+  padding: 24px; 
+  border-radius: 8px;
+}
+
+.financials-card {
+  flex: 1 1 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px; 
+  background: rgba(0, 0, 0, 0.3);
+  background-size: 400%;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1; 
+}
+
+.financials-card dt {
+  color: #ffffff;
+  text-align: center;
+  width: 100%;
+  margin: 0;
+}
+
+.financials-card dd {
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: #f3f4f6;
+  text-align: center;
+  width: 100%;
+  margin: 0;
 }
 
 @keyframes gradientFlow {
