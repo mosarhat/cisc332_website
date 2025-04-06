@@ -73,8 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 <body>
     <?php include '../components/navbar.php'; ?>
 
-    <p class="sub-title">Welcome to the schedule management page.</p>
-
     <div align="center">
     <form method="get">
         <p><span class="subheading">Select a Day</span></p>
@@ -101,14 +99,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     </div>
 
     <table border="2" style="border-collapse: collapse; width: 90%; margin: 20px auto;">
-    <tr>
-        <th style="padding: 10px;">Session</th>
-        <th style="padding: 10px;">Room</th>
-        <th style="padding: 10px;">Start Time</th>
-        <th style="padding: 10px;">End Time</th>
-        <th style="padding: 10px;">Date</th>
-        <th style="padding: 10px;">Actions</th>
-    </tr>
+        <tr>
+            <th style="padding: 10px;">Session</th>
+            <th style="padding: 10px;">Room</th>
+            <th style="padding: 10px;">Start Time</th>
+            <th style="padding: 10px;">End Time</th>
+            <th style="padding: 10px;">Date</th>
+            <th style="padding: 10px;">Actions</th>
+        </tr>
         <?php foreach ($sessions as $session): ?>
             <?php 
                 $isEditing = $editingSession && 

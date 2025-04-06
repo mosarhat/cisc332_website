@@ -24,8 +24,6 @@ $totalIntake = $totalRegistration + $totalSponsorship;
 </head>
 <body>
     <?php include '../components/navbar.php'; ?>
-
-    <p class="sub-title">Welcome to the intake page.</p>
     
     <div class="financials-container">
         <div class="financials-card">
