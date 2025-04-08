@@ -34,6 +34,7 @@ function getAttendeesByType($type, $connection) {
                   FROM Attendee 
                   ORDER BY lastName";
     }
+
     $stmt = $connection->prepare($query);
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -67,6 +68,7 @@ if (isset($_GET['edit'])) {
     }
 
     $editingAttendee['type'] = $type;
+
     if ($type === 'student') {
         $stmt = $connection->prepare("SELECT roomID FROM Student WHERE attendeeID = ?");
         $stmt->execute([$attendeeID]);
@@ -83,6 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateAttendee'])) {
     $roomID = $_POST['hotelRoomID'] ?? null;
     $companyName = $_POST['sponsorCompany'] ?? null;
 
+    $stmt = $connection->prepare("SELECT COUNT(*) FROM Sponsor WHERE attendeeID = ?");
+    $stmt->execute([$attendeeID]);
+    $isSponsor = $stmt->fetchColumn() > 0;
+
+    if ($type === 'sponsor' || $isSponsor) {
+        $fee = 0.00;
+    }
+
     $connection->prepare("DELETE FROM Student WHERE attendeeID = ?")->execute([$attendeeID]);
     $connection->prepare("DELETE FROM Professional WHERE attendeeID = ?")->execute([$attendeeID]);
     $connection->prepare("DELETE FROM Sponsor WHERE attendeeID = ?")->execute([$attendeeID]);
@@ -93,10 +103,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateAttendee'])) {
     if ($type === 'student' && $roomID) {
         $stmt = $connection->prepare("INSERT INTO Student (attendeeID, roomID) VALUES (?, ?)");
         $stmt->execute([$attendeeID, $roomID]);
-    } elseif ($type === 'professional') {
+    }
+
+    if ($type === 'professional') {
         $stmt = $connection->prepare("INSERT INTO Professional (attendeeID) VALUES (?)");
         $stmt->execute([$attendeeID]);
-    } elseif ($type === 'sponsor' && $companyName) {
+    }
+
+    if ($type === 'sponsor' && $companyName) {
         $stmt = $connection->prepare("INSERT INTO Sponsor (attendeeID, companyName) VALUES (?, ?)");
         $stmt->execute([$attendeeID, $companyName]);
     }
@@ -105,6 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateAttendee'])) {
     exit;
 }
 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addAttendee'])) {
     $fname = $_POST['fname'];
     $lname = $_POST['lname'];
@@ -112,6 +127,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addAttendee'])) {
     $fee = $_POST['fee'];
     $roomID = $_POST['hotelRoomID'] ?? null;
     $companyName = $_POST['sponsorCompany'] ?? null;
+
+    // force sponsor fee to 0.00 regardless of user input
+    if ($type === 'sponsor') {
+        $fee = 0.00;
+    }
 
     $stmt = $connection->prepare("INSERT INTO Attendee (firstName, lastName, attendanceFee) VALUES (?, ?, ?)");
     $stmt->execute([$fname, $lname, $fee]);
@@ -148,11 +168,11 @@ $hotelRooms = array_filter($hotelRooms, function ($room) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
     $attendeeID = $_POST['attendeeID'];
-    
+
     try {
         $stmt = $connection->prepare("DELETE FROM Attendee WHERE attendeeID = ?");
         $stmt->execute([$attendeeID]);
-        
+
         header("Location: attendees.php?view=" . urlencode($viewType));
         exit;
     } catch (PDOException $e) {
@@ -184,10 +204,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
     </div>
 
     <div style="width: 90%; margin: 0 auto;">
-        <?php 
-        $viewType = $_GET['view'] ?? '';
-        if ($viewType === 'student' || $viewType === ''): ?>
-            <?php if($viewType === ''): ?>
+        <?php $viewType = $_GET['view'] ?? ''; ?>
+
+        <?php if ($viewType === 'student' || $viewType === ''): ?>
+            <?php if ($viewType === ''): ?>
                 <p class="subheading" align="center">Students</p>
             <?php endif; ?>
             <table border="2" style="border-collapse: collapse; width: 90%; margin: 20px auto;">
@@ -199,9 +219,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
                     <th style="padding: 10px;">Actions</th>
                 </tr>
                 <?php foreach ($students as $attendee): ?>
-                    <?php 
-                        $isEditing = $editingAttendee && $editingAttendee['attendeeID'] == $attendee['attendeeID'];
-                    ?>
+                    <?php $isEditing = $editingAttendee && $editingAttendee['attendeeID'] == $attendee['attendeeID']; ?>
                     <tr class="<?= $isEditing ? 'highlighted-row' : '' ?>">
                         <td style="padding: 10px;"><?= htmlspecialchars($attendee['fname']) ?> <?= htmlspecialchars($attendee['lname']) ?></td>
                         <td style="padding: 10px;"><?= isset($attendee['roomNumber']) ? htmlspecialchars($attendee['roomNumber']) : '' ?></td>
@@ -216,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
         <?php endif; ?>
 
         <?php if ($viewType === 'professional' || $viewType === ''): ?>
-            <?php if($viewType === ''): ?>
+            <?php if ($viewType === ''): ?>
                 <p class="subheading" align="center">Professionals</p>
             <?php endif; ?>
             <table border="2" style="border-collapse: collapse; width: 90%; margin: 20px auto;">
@@ -227,9 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
                     <th style="padding: 10px;">Actions</th>
                 </tr>
                 <?php foreach ($professionals as $attendee): ?>
-                    <?php 
-                        $isEditing = $editingAttendee && $editingAttendee['attendeeID'] == $attendee['attendeeID'];
-                    ?>
+                    <?php $isEditing = $editingAttendee && $editingAttendee['attendeeID'] == $attendee['attendeeID']; ?>
                     <tr class="<?= $isEditing ? 'highlighted-row' : '' ?>">
                         <td style="padding: 10px;"><?= htmlspecialchars($attendee['fname']) ?> <?= htmlspecialchars($attendee['lname']) ?></td>
                         <td style="padding: 10px;">$<?= number_format($attendee['attendanceFee'], 2) ?></td>
@@ -243,7 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
         <?php endif; ?>
 
         <?php if ($viewType === 'sponsor' || $viewType === ''): ?>
-            <?php if($viewType === ''): ?>
+            <?php if ($viewType === ''): ?>
                 <p class="subheading" align="center">Sponsors</p>
             <?php endif; ?>
             <table border="2" style="border-collapse: collapse; width: 90%; margin: 20px auto;">
@@ -255,9 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
                     <th style="padding: 10px;">Actions</th>
                 </tr>
                 <?php foreach ($sponsors as $attendee): ?>
-                    <?php 
-                        $isEditing = $editingAttendee && $editingAttendee['attendeeID'] == $attendee['attendeeID'];
-                    ?>
+                    <?php $isEditing = $editingAttendee && $editingAttendee['attendeeID'] == $attendee['attendeeID']; ?>
                     <tr class="<?= $isEditing ? 'highlighted-row' : '' ?>">
                         <td style="padding: 10px;"><?= htmlspecialchars($attendee['fname']) ?> <?= htmlspecialchars($attendee['lname']) ?></td>
                         <td style="padding: 10px;"><?= isset($attendee['companyName']) ? htmlspecialchars($attendee['companyName']) : '' ?></td>
@@ -271,8 +285,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
             </table>
         <?php endif; ?>
     </div>
-    
-    
     <?php if ($editingAttendee): ?>
         <div class="edit-session-container">
             <div align="center">
@@ -337,8 +349,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
                 </div>
             </form>
         </div>
-        
-        <form id="deleteForm" method="post" style="display:none;">
+
+        <form id="deleteForm" method="post" style="display: none;">
             <input type="hidden" name="deleteAttendee" value="1">
             <input type="hidden" id="deleteAttendeeId" name="attendeeID">
         </form>
@@ -369,14 +381,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
                 <div class="form-group">
                     <label for="type">Attendee Type:</label>
                     <select name="type" id="attendeeType" onchange="toggleHotelField(); toggleSponsorField();" class="gradient-select" required>
-                        <option value="">--Select Type--</option>
                         <option value="student">Student</option>
                         <option value="professional">Professional</option>
                         <option value="sponsor">Sponsor</option>
                     </select>
                 </div>
 
-                <div class="form-group" id="hotelRoomGroup" style="display:none;">
+                <div class="form-group" id="hotelRoomGroup" style="display: none;">
                     <label for="hotelRoomID">Hotel Room (Students only):</label>
                     <select name="hotelRoomID" class="gradient-select">
                         <option value="">Select Hotel Room</option>
@@ -388,7 +399,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
                     </select>
                 </div>
 
-                <div class="form-group" id="sponsorCompanyGroup" style="display:none;">
+                <div class="form-group" id="sponsorCompanyGroup" style="display: none;">
                     <label for="sponsorCompany">Sponsor Company:</label>
                     <select name="sponsorCompany" class="gradient-select">
                         <option value="">Select Sponsor Company</option>
@@ -416,6 +427,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
         function toggleSponsorField() {
             const type = document.getElementById('attendeeType').value;
             document.getElementById('sponsorCompanyGroup').style.display = (type === 'sponsor') ? 'block' : 'none';
+
             const feeGroup = document.getElementById('feeGroup');
             if (feeGroup) {
                 feeGroup.style.display = (type === 'sponsor') ? 'none' : 'block';
@@ -435,8 +447,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteAttendee'])) {
                 document.getElementById('deleteForm').submit();
             }
         }
-
     </script>
-
 </body>
 </html>
+

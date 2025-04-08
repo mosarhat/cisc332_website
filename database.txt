@@ -1,0 +1,231 @@
+DROP DATABASE IF EXISTS conferenceDB;
+CREATE DATABASE IF NOT EXISTS conferenceDB;
+USE conferenceDB;
+
+
+-- Name: Mohammed Sarhat
+-- Student Number: 20177003
+-- The following is my work, and only my work.
+
+-- Strong entities (a)
+CREATE TABLE CommitteeMember
+(
+    fname VARCHAR(60) NOT NULL,
+    lname VARCHAR(60) NOT NULL,
+    committeeMemberID INT AUTO_INCREMENT NOT NULL,
+    PRIMARY KEY (committeeMemberID)
+);
+
+CREATE TABLE SubCommittee
+(
+    subCommitteeID INT AUTO_INCREMENT NOT NULL,
+    committeeName VARCHAR(300) NOT NULL,
+    chairMemberID INT NOT NULL,
+    PRIMARY KEY (subCommitteeID),
+    FOREIGN KEY (chairMemberID) REFERENCES CommitteeMember(committeeMemberID)
+);
+
+-- Strong entities (b)
+CREATE TABLE Attendee 
+(
+    attendeeID INT AUTO_INCREMENT NOT NULL, 
+    firstName VARCHAR(60) NOT NULL,
+    lastName VARCHAR(60) NOT NULL,
+    attendanceFee DECIMAL(10, 2) NOT NULL,
+    PRIMARY KEY (attendeeID)
+);
+
+CREATE TABLE Room 
+(
+    roomNumber INT NOT NULL,
+    numberOfBeds INT NOT NULL,
+    CONSTRAINT check_numberOfBeds CHECK (numberOfBeds >= 1 AND numberOfBeds <= 3),
+    PRIMARY KEY (roomNumber)
+);
+
+CREATE TABLE SponsorCompany
+(
+    companyName VARCHAR(300) NOT NULL,
+    tier ENUM('Platinum', 'Gold', 'Silver', 'Bronze') NOT NULL,
+    emailsSent INT NOT NULL DEFAULT 0,
+    primary key (companyName)
+);
+
+CREATE TABLE Student 
+(
+    attendeeID INT AUTO_INCREMENT NOT NULL, 
+    roomID INT NOT NULL,
+    PRIMARY KEY (attendeeID),
+    FOREIGN KEY (roomID) REFERENCES Room (roomNumber),
+    FOREIGN KEY (attendeeID) REFERENCES Attendee (attendeeID) ON DELETE CASCADE
+);
+
+CREATE TABLE Professional 
+(
+    attendeeID INT AUTO_INCREMENT NOT NULL,
+    PRIMARY KEY (attendeeID),
+    FOREIGN KEY (attendeeID) REFERENCES Attendee (attendeeID) ON DELETE CASCADE
+);
+
+CREATE TABLE Sponsor 
+(
+    attendeeID INT AUTO_INCREMENT NOT NULL, 
+    companyName VARCHAR(300) NOT NULL,
+    PRIMARY KEY (attendeeID),
+    FOREIGN KEY (companyName) REFERENCES SponsorCompany (companyName) ON DELETE CASCADE,
+    FOREIGN KEY (attendeeID) REFERENCES Attendee (attendeeID) ON DELETE CASCADE
+);
+
+CREATE TABLE Session
+(
+    sessionName VARCHAR(300) NOT NULL,
+    roomLocation VARCHAR(300) NOT NULL,
+    startTime TIME NOT NULL,
+    endTime TIME NOT NULL,
+    sessionDate DATE NOT NULL,
+    PRIMARY KEY (roomLocation, startTime, endTime, sessionDate)
+);
+
+-- Weak Entities 
+CREATE TABLE JobPost
+(
+    jobTitle VARCHAR(300) NOT NULL,
+    companyName VARCHAR(300) NOT NULL,
+    city VARCHAR(300) NOT NULL,
+    province VARCHAR(300) NOT NULL,
+    payRate DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (companyName, jobTitle),
+    FOREIGN KEY (companyName) REFERENCES SponsorCompany(companyName)
+);
+
+-- M:N relations
+CREATE TABLE speaksAt
+(
+    roomLocation VARCHAR(300) NOT NULL,
+    startTime TIME NOT NULL,
+    endTime TIME NOT NULL,
+    sessionDate  DATE NOT NULL,
+    attendeeID INT NOT NULL,
+    PRIMARY KEY (attendeeID, sessionDate , startTime, roomLocation),
+    FOREIGN KEY (attendeeID) REFERENCES Attendee (attendeeID) ON DELETE CASCADE,
+    FOREIGN KEY (roomLocation, startTime, endTime, sessionDate) REFERENCES Session (roomLocation, startTime, endTime, sessionDate) ON DELETE CASCADE
+);
+
+CREATE TABLE committeeMemberOf
+(
+    subCommitteeID INT NOT NULL,
+    committeeMemberID INT NOT NULL,
+    PRIMARY KEY (subCommitteeID, committeeMemberID),
+    FOREIGN KEY (subCommitteeID) REFERENCES SubCommittee (subCommitteeID) ON DELETE CASCADE,
+    FOREIGN KEY (committeeMemberID) REFERENCES CommitteeMember (committeeMemberID) ON DELETE CASCADE
+);
+
+-- insert data into CommitteeMember
+INSERT INTO CommitteeMember (fname, lname) VALUES
+('Ahmed', 'Khan'),
+('Fatima', 'Ali'),
+('Yusuf', 'Rahman'),
+('Aisha', 'Hussain'),
+('Omar', 'Malik'),
+('Leila', 'Abbas'),
+('Hassan', 'Iqbal'),
+('Zainab', 'Saeed');
+
+-- insert data into SubCommittee
+INSERT INTO SubCommittee (committeeName, chairMemberID) VALUES
+('Logistics Committee', 1),
+('Sponsorship Committee', 2),
+('Program Committee', 3),
+('Publicity Committee', 4),
+('Volunteer Committee', 5),
+('Technical Committee', 6);
+
+-- insert data into Attendee
+INSERT INTO Attendee (firstName, lastName, attendanceFee) VALUES
+('Ali', 'Ahmed', 150.00),
+('Sana', 'Khan', 200.00),
+('Raza', 'Hussain', 180.00),
+('Amina', 'Malik', 170.00),
+('Bilal', 'Rahman', 160.00),
+('Nadia', 'Iqbal', 190.00),
+('Tariq', 'Abbas', 175.00),
+('Sadia', 'Saeed', 185.00);
+
+-- insert data into Room
+INSERT INTO Room (roomNumber, numberOfBeds) VALUES
+(101, 1),
+(102, 2),
+(103, 3),
+(104, 1),
+(105, 2),
+(106, 3),
+(107, 1),
+(108, 2);
+
+-- insert data into SponsorCompany
+INSERT INTO SponsorCompany (companyName, tier, emailsSent) VALUES
+('Tech Innovators', 'Platinum', 10),
+('Global Solutions', 'Gold', 8),
+('Future Enterprises', 'Silver', 6),
+('Bright Ideas', 'Bronze', 4),
+('NextGen Tech', 'Gold', 7),
+('Visionary Labs', 'Silver', 5);
+
+-- insert data into Student
+INSERT INTO Student (attendeeID, roomID) VALUES
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Ali' AND lastName = 'Ahmed'), 101),
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Sana' AND lastName = 'Khan'), 102),
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Raza' AND lastName = 'Hussain'), 103),
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Amina' AND lastName = 'Malik'), 104);
+
+-- insert data into Professional
+INSERT INTO Professional (attendeeID) VALUES
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Bilal' AND lastName = 'Rahman' AND attendeeID NOT IN (SELECT attendeeID FROM Sponsor))),
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Nadia' AND lastName = 'Iqbal' AND attendeeID NOT IN (SELECT attendeeID FROM Sponsor))),
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Tariq' AND lastName = 'Abbas' AND attendeeID NOT IN (SELECT attendeeID FROM Sponsor))),
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Sadia' AND lastName = 'Saeed' AND attendeeID NOT IN (SELECT attendeeID FROM Sponsor)));
+
+
+-- insert data into Sponsor
+INSERT INTO Sponsor (attendeeID, companyName) VALUES
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Bilal' AND lastName = 'Rahman'), 'Tech Innovators'),
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Nadia' AND lastName = 'Iqbal'), 'Global Solutions'),
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Tariq' AND lastName = 'Abbas'), 'Future Enterprises'),
+((SELECT attendeeID FROM Attendee WHERE firstName = 'Sadia' AND lastName = 'Saeed'), 'Bright Ideas');
+
+
+-- insert data into Session
+INSERT INTO Session (sessionName, roomLocation, startTime, endTime, sessionDate) VALUES
+('Keynote Speech', 'Main Hall', '09:00:00', '10:00:00', '2023-10-15'),
+('Panel Discussion', 'Room A', '11:00:00', '12:30:00', '2023-10-15'),
+('Workshop on AI', 'Room B', '14:00:00', '16:00:00', '2023-10-16'),
+('Networking Event', 'Lobby', '17:00:00', '18:30:00', '2023-10-16'),
+('Technical Talk', 'Room C', '10:00:00', '11:30:00', '2023-10-17'),
+('Closing Ceremony', 'Main Hall', '15:00:00', '16:00:00', '2023-10-17');
+
+-- insert data into JobPost
+INSERT INTO JobPost (jobTitle, companyName, city, province, payRate) VALUES
+('Software Engineer', 'Tech Innovators', 'Karachi', 'Sindh', 2500.00),
+('Data Scientist', 'Global Solutions', 'Lahore', 'Punjab', 3000.00),
+('Project Manager', 'Future Enterprises', 'Islamabad', 'Federal', 2800.00),
+('Marketing Specialist', 'Bright Ideas', 'Dhaka', 'Dhaka Division', 2000.00);
+
+-- insert data into speaksAt
+INSERT INTO speaksAt (roomLocation, startTime, endTime, sessionDate, attendeeID) VALUES
+('Main Hall', '09:00:00', '10:00:00', '2023-10-15', (SELECT attendeeID FROM Attendee WHERE firstName = 'Ali' AND lastName = 'Ahmed')),
+('Room A', '11:00:00', '12:30:00', '2023-10-15', (SELECT attendeeID FROM Attendee WHERE firstName = 'Sana' AND lastName = 'Khan')),
+('Room B', '14:00:00', '16:00:00', '2023-10-16', (SELECT attendeeID FROM Attendee WHERE firstName = 'Raza' AND lastName = 'Hussain')),
+('Lobby', '17:00:00', '18:30:00', '2023-10-16', (SELECT attendeeID FROM Attendee WHERE firstName = 'Amina' AND lastName = 'Malik')),
+('Room C', '10:00:00', '11:30:00', '2023-10-17', (SELECT attendeeID FROM Attendee WHERE firstName = 'Bilal' AND lastName = 'Rahman')),
+('Main Hall', '15:00:00', '16:00:00', '2023-10-17', (SELECT attendeeID FROM Attendee WHERE firstName = 'Nadia' AND lastName = 'Iqbal'));
+
+-- insert data into committeeMemberOf
+INSERT INTO committeeMemberOf (subCommitteeID, committeeMemberID) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5),
+(6, 6),
+(1, 7),
+(2, 8);

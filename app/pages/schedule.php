@@ -45,19 +45,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     $originalEndTime = $_POST['originalEndTime'];
     $originalSessionDate = $_POST['originalSessionDate'];
 
-    $query = "UPDATE Session 
-              SET sessionName = ?, roomLocation = ?, startTime = ?, endTime = ?, sessionDate = ? 
-              WHERE sessionName = ? AND roomLocation = ? AND startTime = ? AND endTime = ? AND sessionDate = ?";
-    $stmt = $connection->prepare($query);
-    $stmt->execute([
-        $newSessionName, $newRoomLocation, $newStartTime, $newEndTime, $newSessionDate,
-        $originalSessionName, $originalRoomLocation, $originalStartTime, $originalEndTime, $originalSessionDate
-    ]);
-    
-    $editingSession = false;
-    
-    header("Location: schedule.php" . ($selectedDay ? "?day=" . urlencode($selectedDay) : ""));
-    exit;
+    try {
+        $connection->beginTransaction();
+
+        $stmt = $connection->prepare("
+            UPDATE speaksat 
+            SET roomLocation = ?, startTime = ?, endTime = ?, sessionDate = ?
+            WHERE roomLocation = ? AND startTime = ? AND endTime = ? AND sessionDate = ?
+        ");
+        $stmt->execute([
+            $newRoomLocation, $newStartTime, $newEndTime, $newSessionDate,
+            $originalRoomLocation, $originalStartTime, $originalEndTime, $originalSessionDate
+        ]);
+
+        $stmt = $connection->prepare("
+            UPDATE Session 
+            SET sessionName = ?, roomLocation = ?, startTime = ?, endTime = ?, sessionDate = ?
+            WHERE sessionName = ? AND roomLocation = ? AND startTime = ? AND endTime = ? AND sessionDate = ?
+        ");
+        $stmt->execute([
+            $newSessionName, $newRoomLocation, $newStartTime, $newEndTime, $newSessionDate,
+            $originalSessionName, $originalRoomLocation, $originalStartTime, $originalEndTime, $originalSessionDate
+        ]);
+
+        $connection->commit();
+
+        header("Location: schedule.php" . ($selectedDay ? "?day=" . urlencode($selectedDay) : ""));
+        exit;
+    } catch (PDOException $e) {
+        $connection->rollBack();
+        echo "Update failed: " . $e->getMessage();
+        exit;
+    }
 }
 ?>
 
